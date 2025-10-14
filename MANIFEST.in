@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include CODE_OF_CONDUCT.md
+include SECURITY.md
+include requirements.txt
+include setup.cfg
+include pyproject.toml
+recursive-include datalyzer *.py
+recursive-include reports *

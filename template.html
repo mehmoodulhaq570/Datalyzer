@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Dataset Analyzer Interactive Report</title>
+    <style>
+      /* ========== GLOBAL STYLE ========== */
+      body {
+        font-family: "Times New Roman", serif;
+        background-color: #f8f9fa;
+        margin: 20px;
+        color: #222;
+      }
+
+      h1 {
+        color: #1b5e20;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        color: #2c3e50;
+        border-left: 6px solid #1b5e20;
+        padding-left: 10px;
+        margin-top: 40px;
+        background-color: #ecf0f1;
+        padding: 5px 10px;
+        border-radius: 4px;
+      }
+
+      h3 {
+        color: #333;
+      }
+
+      /* ========== CONTAINERS ========== */
+      .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 25px;
+      }
+
+      .readiness {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        text-align: center;
+      }
+
+      .readiness h2 {
+        color: #1b5e20;
+        border-left: none;
+        background: none;
+        margin: 0;
+      }
+
+      .readiness ul {
+        list-style: disc;
+        text-align: left;
+        display: inline-block;
+      }
+
+      /* ========== TABLES ========== */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+        font-size: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px 10px;
+        text-align: center;
+      }
+
+      th {
+        background-color: #e0f2f1;
+        font-weight: bold;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      tr:hover {
+        background-color: #f1f8e9;
+      }
+
+      /* ========== TOOLTIP ========== */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        color: #00796b;
+        font-weight: bold;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 240px;
+        background-color: #333;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -120px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* ========== IMAGE GRID ========== */
+      .plot-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .plot-gallery img {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+      }
+
+      .plot-gallery img:hover {
+        transform: scale(1.03);
+      }
+
+      /* ========== FOOTER ========== */
+      footer {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 14px;
+        color: #777;
+      }
+
+      /* ========== NORMALITY COLORS ========== */
+      .non-normal {
+        color: red;
+      }
+      .normal {
+        color: green;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Smart Dataset Analyzer Interactive Report</h1>
+
+    <!-- Readiness Summary -->
+    <div class="readiness">
+      <h2>ML Readiness Score: {{ readiness_score }}/100</h2>
+      {% if suggestions %}
+      <h3>Actionable Suggestions:</h3>
+      <ul>
+        {% for s in suggestions %}
+        <li>{{ s }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>
+        <strong>No critical issues detected.</strong> Dataset is ready for ML
+        modeling.
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- Feature Stats -->
+    <div class="card">
+      <h2>Feature Statistics</h2>
+      {{ stats_html|safe }}
+    </div>
+
+    <!-- Outlier Analysis -->
+    <div class="card">
+      <h2>Outlier Analysis</h2>
+      <table>
+        <tr>
+          <th>Column</th>
+          <th>Outlier Count</th>
+          <th>Example Values</th>
+          <th>Outlier %</th>
+        </tr>
+        {% for col, info in outliers.items() %}
+        <tr>
+          <td>{{ col }}</td>
+          <td>{{ info.count }}</td>
+          <td>
+            <span class="tooltip"
+              >View<span class="tooltiptext"
+                >{{ info.examples|join(', ') }}</span
+              ></span
+            >
+          </td>
+          <td>{{ info.percent }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Normality Analysis -->
+    <div class="card">
+      <h2>Normality Test Results</h2>
+      {% if normality %}
+      <table>
+        <tr>
+          <th>Feature</th>
+          <th>Skew</th>
+          <th>Kurtosis</th>
+          <th>Shapiro p</th>
+          <th>D’Agostino p</th>
+          <th>KS p</th>
+          <th>Status</th>
+        </tr>
+
+        {% if normality %}
+        <table>
+          <tr>
+            <th>Feature</th>
+            <th>Skew</th>
+            <th>Kurtosis</th>
+            <th>Shapiro p</th>
+            <th>D’Agostino p</th>
+            <th>KS p</th>
+            <th>Status</th>
+          </tr>
+
+          {% for info in normality %} {% if info is mapping and "skew" in info
+          %}
+          <tr
+            class="{% if info['is_normal'] %}normal{% else %}non-normal{% endif %}"
+          >
+            <td>{{ info['feature'] }}</td>
+            <td>{{ "%.3f"|format(info['skew']) }}</td>
+            <td>{{ "%.3f"|format(info['kurtosis']) }}</td>
+            <td>{{ "%.4f"|format(info['Shapiro_p']) }}</td>
+            <td>{{ "%.4f"|format(info['DAgostino_p']) }}</td>
+            <td>{{ "%.4f"|format(info['KS_p']) }}</td>
+            <td>
+              {% if info['is_normal'] %}✅ Normal{% else %}❌ Non-Normal{% endif
+              %}
+            </td>
+          </tr>
+          {% else %}
+          <tr style="color: red">
+            <td>{{ info.get('feature', 'Unknown') }}</td>
+            <td colspan="6">Error: {{ info.get('error', info) }}</td>
+          </tr>
+          {% endif %} {% endfor %}
+        </table>
+        {% else %}
+        <p>No numeric columns available for normality test.</p>
+        {% endif %}
+      </table>
+      {% else %}
+      <p>No numeric columns available for normality test.</p>
+      {% endif %}
+    </div>
+
+    <!-- Leakage -->
+    <div class="card">
+      <h2>Target Leakage Detection</h2>
+      {% if leakage %}
+      <table>
+        <tr>
+          <th>Feature</th>
+          <th>Accuracy</th>
+        </tr>
+        {% for col, acc in leakage.items() %}
+        <tr class="{% if acc > 0.95 %}non-normal{% else %}normal{% endif %}">
+          <td>{{ col }}</td>
+          <td>{{ "%.2f"|format(acc) }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <p>No strong evidence of target leakage detected.</p>
+      {% endif %}
+    </div>
+
+    <!-- Imbalance -->
+    <div class="card">
+      <h2>Class Imbalance Check</h2>
+      {% if imbalance %}
+      <table>
+        <tr>
+          <th>Class</th>
+          <th>Percentage</th>
+        </tr>
+        {% for cls, pct in imbalance.items() %}
+        <tr style="color: red">
+          <td>{{ cls }}</td>
+          <td>{{ "%.2f"|format(pct * 100) }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <p>Target variable appears balanced.</p>
+      {% endif %}
+    </div>
+
+    <!-- Sectioned Visualizations -->
+    {% for section, gallery in plot_groups.items() %} {% if gallery and section
+    != 'Feature Importance' and section != 'PCA' and section != 't-SNE' %}
+    <div class="card">
+      <h2>{{ section }}</h2>
+      <div class="plot-gallery">
+        {% for plot in gallery %}
+        <img src="{{ plot }}" alt="{{ section }}" width="400" />
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %} {% endfor %} {% if plot_groups['Feature Importance'] and
+    plot_groups['Feature Importance']|length > 0 %}
+    <div class="card">
+      <h2>Feature Importance</h2>
+      <div class="plot-gallery">
+        <img
+          src="{{ plot_groups['Feature Importance'][0] }}"
+          alt="Feature Importance"
+          style="max-width: 500px; height: auto"
+        />
+      </div>
+    </div>
+    {% endif %} {% if plot_groups['PCA'] and plot_groups['PCA']|length > 0 %}
+    <div class="card">
+      <h2>PCA Plot</h2>
+      <div class="plot-gallery">
+        {% for plot in plot_groups['PCA'] %}
+        <img
+          src="{{ plot }}"
+          alt="PCA Plot"
+          style="max-width: 500px; height: auto"
+        />
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %} {% if plot_groups['t-SNE'] and plot_groups['t-SNE']|length > 0
+    %}
+    <div class="card">
+      <h2>t-SNE Plot</h2>
+      <div class="plot-gallery">
+        {% for plot in plot_groups['t-SNE'] %}
+        <img
+          src="{{ plot }}"
+          alt="t-SNE Plot"
+          style="max-width: 500px; height: auto"
+        />
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <footer>
+      <p>Generated on {{ timestamp }} | Enhanced Smart Dataset Analyzer v2</p>
+    </footer>
+  </body>
+</html>
