@@ -22,7 +22,7 @@ setup(
     python_requires=">=3.8",
     entry_points={
         "console_scripts": [
-            "datalyzer = datalyzer.cli:main",
+            "smart-datalyzer = datalyzer.cli:main",
         ],
     },
     classifiers=[

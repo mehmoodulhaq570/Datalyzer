@@ -33,7 +33,7 @@ Homepage = "https://github.com/mehmoodulhaq570/smart-datalyzer"
 BugTracker = "https://github.com/mehmoodulhaq570/smart-datalyzer/issues"
 
 [project.scripts]
-datalyzer = "datalyzer.cli:main"
+smart-datalyzer = "datalyzer.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -89,19 +89,27 @@ pip install -e .
 ### Basic Usage (Single Target)
 
 ```bash
-python -m datalyzer.cli data.xlsx "target_column"
+python -m smart-datalyzer data.xlsx "target_column"
+```
+
+Or using the installed command:
+
+```bash
+smart-datalyzer data.xlsx "target_column"
 ```
 
 ### Multiple Target Columns
 
 ```bash
-python -m datalyzer.cli data.csv "target1" "target2" "target3"
+python -m smart-datalyzer data.csv "target1" "target2" "target3"
 ```
 
 ### Command Line Arguments
 
 ```bash
-python -m datalyzer.cli <file> <target> [OPTIONS]
+python -m smart-datalyzer <file> <target> [OPTIONS]
+# or
+smart-datalyzer <file> <target> [OPTIONS]
 
 Arguments:
   file                    Path to dataset (CSV or XLSX)
@@ -124,25 +132,25 @@ Options:
 **Quick Analysis:**
 
 ```bash
-python -m datalyzer.cli sales.xlsx "Revenue" --auto
+python -m smart-datalyzer sales.xlsx "Revenue" --auto
 ```
 
 **Detailed Statistical Report:**
 
 ```bash
-python -m datalyzer.cli customers.csv "Churn" --stats --plots --report
+smart-datalyzer customers.csv "Churn" --stats --plots --report
 ```
 
 **Multiple Targets with Custom Output:**
 
 ```bash
-python -m datalyzer.cli experiment.xlsx "Outcome1" "Outcome2" --auto --output_dir results
+smart-datalyzer experiment.xlsx "Outcome1" "Outcome2" --auto --output_dir results
 ```
 
 **Outlier & Leakage Detection:**
 
 ```bash
-python -m datalyzer.cli medical.csv "Disease" --outliers --leakage
+python -m smart-datalyzer medical.csv "Disease" --outliers --leakage
 ```
 
 ## 📊 Output Structure
