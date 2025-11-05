@@ -172,7 +172,7 @@ def generate_interactive_report(
 
 	print(f"[green]JSON summary saved: {json_file}[green]")
 """
-HTML/PDF/JSON report generation for Datalyzer package
+HTML/PDF/JSON report generation for Smart Datalyzer package
 """
 
 # Functions: generate_interactive_report

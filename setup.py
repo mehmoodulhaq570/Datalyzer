@@ -30,8 +30,8 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    url="https://github.com/mehmoodulhaq570/datalyzer",
+    url="https://github.com/mehmoodulhaq570/smart-datalyzer",
     project_urls={
-        "Bug Tracker": "https://github.com/mehmoodulhaq570/datalyzer/issues",
+        "Bug Tracker": "https://github.com/mehmoodulhaq570/smart-datalyzer/issues",
     },
 )

@@ -1,5 +1,5 @@
 """
-Main analysis logic and CLI entry point for Datalyzer package
+Main analysis logic and CLI entry point for Smart Datalyzer package
 """
 
 from .stats import *

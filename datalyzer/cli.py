@@ -19,9 +19,9 @@ from datalyzer.report import generate_interactive_report
 from datalyzer.config import console
 
 def main():
-	parser = argparse.ArgumentParser(description="Enhanced Smart Dataset Analyzer v3")
+	parser = argparse.ArgumentParser(description="Smart Datalyzer - Enhanced Dataset Analyzer v3")
 	parser.add_argument("file", help="Path to dataset (CSV/XLSX)")
-	parser.add_argument("target", help="Target column name")
+	parser.add_argument("target", nargs='+', help="Target column name(s) - space separated for multiple targets")
 	parser.add_argument("--stats", action="store_true", help="Run feature statistics")
 	parser.add_argument("--outliers", action="store_true", help="Detect outliers")
 	parser.add_argument("--leakage", action="store_true", help="Detect target leakage")
@@ -71,10 +71,20 @@ def main():
 	console.rule("[bold blue]📦 Dataset Loading[bold blue]")
 	df = load_dataset(args.file, args.max_rows)
 
-	if not args.target or args.target not in df.columns:
+	# Handle multiple targets
+	if isinstance(args.target, list):
+		target_columns = args.target
+	else:
+		target_columns = [args.target]
+	
+	# Validate targets
+	valid_targets = [t for t in target_columns if t in df.columns]
+	if not valid_targets:
 		possible_targets = [c for c in df.columns if df[c].nunique() < 20 and df[c].dtype != 'float64']
-		args.target = possible_targets[-1] if possible_targets else df.columns[-1]
-		console.print(f"[yellow]⚠ No valid target provided. Automatically using: [bold]{args.target}[/bold][yellow]")
+		valid_targets = [possible_targets[-1] if possible_targets else df.columns[-1]]
+		console.print(f"[yellow]⚠ No valid targets provided. Automatically using: [bold]{valid_targets}[/bold][yellow]")
+	
+	console.print(f"[bold cyan]🎯 Target column(s):[/bold cyan] {', '.join(valid_targets)}")
 
 	if df is None:
 		console.print("[red]❌ Dataset could not be loaded. Exiting.[/red]")
@@ -111,6 +121,7 @@ def main():
 			console.print(f"[cyan]💡 Suggested to drop correlated columns: [bold]{to_drop}[/bold][cyan]")
 		console.print("[green]✅ Smart Data Quality Checks completed.[green]")
 
+	# Run analysis once (not per-target) for general stats
 	cache_data = load_cache(cache_key)
 
 	if cache_data:
@@ -118,10 +129,7 @@ def main():
 		readiness_score = cache_data.get('readiness_score', 0)
 		suggestions = cache_data.get('suggestions', [])
 		outliers = cache_data.get('outliers', {})
-		leakage = cache_data.get('leakage', [])
-		imbalance = cache_data.get('imbalance', {})
-		diagnostics = cache_data.get('diagnostics', {})
-		console.print('[green]Loaded cached analysis results.[green]')
+		console.print('[green]Loaded cached general analysis results.[green]')
 	else:
 		if args.stats:
 			stats_df, readiness_score, suggestions = feature_statistics(df)
@@ -129,35 +137,32 @@ def main():
 			stats_df, readiness_score, suggestions = None, 0, []
 
 		outliers = detect_outliers(df, numeric_cols) if args.outliers else {}
-		leakage = detect_target_leakage(df, args.target) if args.leakage else []
-		imbalance = detect_imbalance(df, args.target) if args.imbalance else {}
-
-		if args.auto or args.stats:
-			diagnostics = run_statistical_diagnostics(df, args.target)
-		else:
-			diagnostics = {}
 
 		save_cache(cache_key, {
 			'stats_df': stats_df,
 			'readiness_score': readiness_score,
 			'suggestions': suggestions,
-			'outliers': outliers,
-			'leakage': leakage,
-			'imbalance': imbalance,
-			'diagnostics': diagnostics
+			'outliers': outliers
 		})
 
-		if outliers:
-			outlier_table = Table(title="Outlier Detection", show_header=True, header_style="bold magenta")
-			outlier_table.add_column("Feature")
-			outlier_table.add_column("Count", justify="right")
-			outlier_table.add_column("Percent", justify="right")
-			for col, info in outliers.items():
-				outlier_table.add_row(col, str(info['count']), f"{info['percent']}%")
-			console.print(outlier_table)
+	if outliers:
+		outlier_table = Table(title="Outlier Detection", show_header=True, header_style="bold magenta")
+		outlier_table.add_column("Feature")
+		outlier_table.add_column("Count", justify="right")
+		outlier_table.add_column("Percent", justify="right")
+		for col, info in outliers.items():
+			outlier_table.add_row(col, str(info['count']), f"{info['percent']}%")
+		console.print(outlier_table)
+
+	# Loop through each target column for target-specific analyses
+	for target_col in valid_targets:
+		console.rule(f"[bold yellow]🎯 Analysis for Target: {target_col}[/bold yellow]")
+		
+		leakage = detect_target_leakage(df, target_col) if args.leakage else []
+		imbalance = detect_imbalance(df, target_col) if args.imbalance else {}
 
 		if leakage:
-			leakage_table = Table(title="Feature Leakage Scores", show_header=True, header_style="bold yellow")
+			leakage_table = Table(title=f"Feature Leakage Scores (Target: {target_col})", show_header=True, header_style="bold yellow")
 			leakage_table.add_column("Feature")
 			leakage_table.add_column("Score", justify="right")
 			for col in leakage:
@@ -165,8 +170,8 @@ def main():
 				try:
 					from sklearn.ensemble import RandomForestClassifier
 					clf = RandomForestClassifier(n_estimators=50, random_state=42)
-					clf.fit(df[[col]].fillna(0), df[df.columns[-1]])
-					y = df[df.columns[-1]]
+					clf.fit(df[[col]].fillna(0), df[target_col])
+					y = df[target_col]
 					y_pred = clf.predict(df[[col]].fillna(0))
 					if pd.api.types.is_numeric_dtype(y) and y.nunique() > len(y) * 0.5:
 						from sklearn.metrics import r2_score
@@ -179,19 +184,22 @@ def main():
 			console.print(leakage_table)
 
 		if imbalance:
-			dist_table = Table(title="Target Distribution", show_header=True, header_style="bold blue")
+			dist_table = Table(title=f"Target Distribution (Target: {target_col})", show_header=True, header_style="bold blue")
 			dist_table.add_column("Class")
 			dist_table.add_column("Percentage", justify="right")
 			for cls, pct in imbalance.items():
 				dist_table.add_row(str(cls), f"{pct*100:.2f}%")
 			console.print(dist_table)
 
-	if args.auto or args.stats:
-		diagnostics = run_statistical_diagnostics(df, args.target)
+		if args.auto or args.stats:
+			diagnostics = run_statistical_diagnostics(df, target_col)
 
+	# Use first target for remaining analyses
+	primary_target = valid_targets[0]
+	
 	if args.stats:
 		console.rule("[bold magenta]🧠 Advanced Statistical & Dimensional Analyses[bold magenta]")
-		assoc_results = feature_target_association(df, args.target)
+		assoc_results = feature_target_association(df, primary_target)
 		if assoc_results:
 			assoc_table = Table(title="Feature–Target Associations", show_header=True, header_style="bold cyan")
 			assoc_table.add_column("Feature")
@@ -213,20 +221,20 @@ def main():
 		dim_table.add_row("t-SNE Scatter", str(tsne_path))
 		console.print(dim_table)
 
-		imbalance_info = class_imbalance_ratio(df, args.target)
+		imbalance_info = class_imbalance_ratio(df, primary_target)
 		if imbalance_info:
-			cc_table = Table(title="Class Counts", show_header=True, header_style="bold blue")
+			cc_table = Table(title=f"Class Counts (Target: {primary_target})", show_header=True, header_style="bold blue")
 			cc_table.add_column("Class")
 			cc_table.add_column("Count", justify="right")
 			for cls, cnt in imbalance_info['counts'].items():
 				cc_table.add_row(str(cls), str(cnt))
 			console.print(cc_table)
-			ir_table = Table(title="Imbalance Ratio", show_header=True, header_style="bold red")
+			ir_table = Table(title=f"Imbalance Ratio (Target: {primary_target})", show_header=True, header_style="bold red")
 			ir_table.add_column("Imbalance Ratio (IR)", justify="right")
 			ir_table.add_row(str(imbalance_info['imbalance_ratio']))
 			console.print(ir_table)
 
-	sensitivity = sensitivity_analysis(df, args.target)
+	sensitivity = sensitivity_analysis(df, primary_target)
 	if sensitivity is not None and not sensitivity.empty:
 			sens_table = Table(title="Top 5 Sensitive Features", show_header=True, header_style="bold magenta")
 			sens_table.add_column("Feature")
@@ -268,9 +276,9 @@ def main():
 				vif_table.add_row(str(row['Feature']), str(row['VIF']))
 			console.print(vif_table)
 
-		mi_df = compute_mutual_info(df, args.target)
+		mi_df = compute_mutual_info(df, primary_target)
 		if not mi_df.empty:
-			mi_table = Table(title="Mutual Information (Top 5)", show_header=True, header_style="bold green")
+			mi_table = Table(title=f"Mutual Information (Top 5, Target: {primary_target})", show_header=True, header_style="bold green")
 			mi_table.add_column("Feature")
 			mi_table.add_column("Mutual_Info", justify="right")
 			for _, row in mi_df.head(5).iterrows():
@@ -300,7 +308,7 @@ def main():
 				plot_paths["correlation"] = corr_paths
 			else:
 				plot_paths = {"all": plot_paths, "correlation": corr_paths}
-			importance_path, importance_data = compute_feature_importance(df, args.target, plots_dir)
+			importance_path, importance_data = compute_feature_importance(df, primary_target, plots_dir)
 			if importance_path:
 				plot_paths["feature_importance"] = importance_path
 			progress.update(task, advance=1)
@@ -314,7 +322,7 @@ def main():
 			console.rule("[bold cyan]🌲 Feature Importance[bold cyan]")
 			console.print(f"[green]🌲 Feature importance plot saved to [bold]{importance_path}[/bold][green]")
 
-	model_type = suggest_model(df, args.target)
+	model_type = suggest_model(df, primary_target)
 
 	if args.report:
 		console.rule("[bold cyan]🧾 Generating Report[bold cyan]")

@@ -1,6 +1,6 @@
-# Datalyzer package init
+# Smart Datalyzer package init
 """
-Datalyzer package init: exposes main CLI entry point and core modules.
+Smart Datalyzer package init: exposes main CLI entry point and core modules.
 """
 
 from .cli import main

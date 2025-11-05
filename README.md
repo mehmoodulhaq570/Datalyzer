@@ -1,6 +1,6 @@
-# Datalyzer
+# Smart Datalyzer
 
-Datalyzer is a toolkit for data analysis, visualization, and automated reporting.
+Smart Datalyzer is a toolkit for data analysis, visualization, and automated reporting.
 
 ## Features
 
@@ -18,7 +18,7 @@ Recommended (modern):
 ```bash
 pip install build
 python -m build
-pip install dist/datalyzer-0.1.0-py3-none-any.whl
+pip install dist/smart_datalyzer-0.1.0-py3-none-any.whl
 ```
 
 Or legacy:

@@ -29,8 +29,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mehmoodulhaq570/datalyzer"
-BugTracker = "https://github.com/mehmoodulhaq570/datalyzer/issues"
+Homepage = "https://github.com/mehmoodulhaq570/smart-datalyzer"
+BugTracker = "https://github.com/mehmoodulhaq570/smart-datalyzer/issues"
 
 [project.scripts]
 datalyzer = "datalyzer.cli:main"

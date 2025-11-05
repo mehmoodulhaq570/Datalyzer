@@ -1,5 +1,5 @@
 """
-Global settings and style configuration for Datalyzer package
+Global settings and style configuration for Smart Datalyzer package
 """
 
 
