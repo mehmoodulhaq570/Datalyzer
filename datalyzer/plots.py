@@ -15,13 +15,15 @@ console = Console()
 
 def save_unique_plot(fig, output_dir, filename_base):
 	os.makedirs(output_dir, exist_ok=True)
-	base_path = os.path.join(output_dir, f"{filename_base}.png")
+	# Sanitize filename: remove invalid characters for Windows/Linux
+	safe_filename = filename_base.replace('/', '_').replace('\\', '_').replace(':', '_').replace('*', '_').replace('?', '_').replace('"', '_').replace('<', '_').replace('>', '_').replace('|', '_').replace('°', 'deg').replace('(', '').replace(')', '')
+	base_path = os.path.join(output_dir, f"{safe_filename}.png")
 	if not os.path.exists(base_path):
 		fig.savefig(base_path, dpi=300, bbox_inches='tight')
 		return base_path
 	counter = 2
 	while True:
-		new_path = os.path.join(output_dir, f"{filename_base}_{counter}.png")
+		new_path = os.path.join(output_dir, f"{safe_filename}_{counter}.png")
 		if not os.path.exists(new_path):
 			fig.savefig(new_path, dpi=300, bbox_inches='tight')
 			return new_path
@@ -73,9 +75,14 @@ def plot_distributions(df, plots_dir="plots", clean=True):
 		path = save_unique_plot(fig, plots_dir, f"{col}_violinplot")
 		plt.close(fig)
 		paths.append(('violin', path))
+		# Swarm plot - limit to 2000 points for performance
+		data_for_swarm = df[col].dropna()
+		if len(data_for_swarm) > 2000:
+			data_for_swarm = data_for_swarm.sample(n=2000, random_state=42)
+		
 		fig, ax = plt.subplots(figsize=(6, 4))
-		sns.boxplot(y=df[col].dropna(), color=plt.cm.cividis(0.6), fliersize=0, linewidth=1, ax=ax)
-		sns.swarmplot(y=df[col].dropna(), color="black", size=3, alpha=0.7, ax=ax)
+		sns.boxplot(y=data_for_swarm, color=plt.cm.cividis(0.6), fliersize=0, linewidth=1, ax=ax)
+		sns.swarmplot(y=data_for_swarm, color="black", size=3, alpha=0.7, ax=ax)
 		ax.set_title(f"Swarm Plot of {col}", fontsize=13, fontweight="bold", fontname="Times New Roman")
 		ax.set_ylabel(col, fontsize=12, fontweight="bold", fontname="Times New Roman")
 		ax.tick_params(labelsize=10)

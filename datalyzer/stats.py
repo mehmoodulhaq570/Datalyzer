@@ -160,6 +160,9 @@ def detect_target_leakage(df, target_col):
 
 def detect_imbalance(df, target_col):
 	try:
+		# Skip imbalance check if more than 10 unique classes
+		if df[target_col].nunique() > 10:
+			return {}
 		counts = df[target_col].value_counts(normalize=True)
 		imbalance = counts[counts < 0.3]
 		return imbalance.to_dict()
@@ -316,6 +319,9 @@ def class_imbalance_ratio(df, target):
     if target not in df.columns:
         return None
     y = df[target]
+    # Skip imbalance check if more than 10 unique classes
+    if y.nunique() > 10:
+        return None
     if y.nunique() <= 1:
         return None
     counts = y.value_counts()
