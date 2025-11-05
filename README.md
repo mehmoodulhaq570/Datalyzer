@@ -1,5 +1,12 @@
 # Smart Datalyzer
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/mehmoodulhaq570/smart-datalyzer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/downloads/)
+[![Issues](https://img.shields.io/github/issues/mehmoodulhaq570/smart-datalyzer)](https://github.com/mehmoodulhaq570/smart-datalyzer/issues)
+[![Size](https://img.shields.io/github/repo-size/mehmoodulhaq570/smart-datalyzer.svg)](https://github.com/mehmoodulhaq570/smart-datalyzer)
+[![Downloads](https://img.shields.io/github/downloads/mehmoodulhaq570/smart-datalyzer/total.svg)](https://github.com/mehmoodulhaq570/smart-datalyzer/releases)
+
 **Smart Datalyzer** is an intelligent, automated toolkit for comprehensive data analysis, visualization, and reporting. It provides ML readiness scoring, advanced statistical diagnostics, and publication-quality visualizations with minimal effort.
 
 ## 🚀 Key Features
