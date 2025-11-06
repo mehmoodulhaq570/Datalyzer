@@ -1,9 +1,9 @@
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/mehmoodulhaq570/datalyzer)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/mehmoodulhaq570/smart-datalyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/downloads/)
-[![Issues](https://img.shields.io/github/issues/mehmoodulhaq570/smart-datalyzer)](https://github.com/mehmoodulhaq570/datalyzer/issues)
-[![Size](https://img.shields.io/github/repo-size/mehmoodulhaq570/smart-datalyzer.svg)](https://github.com/mehmoodulhaq570/datalyzer)
-[![Downloads](https://img.shields.io/github/downloads/mehmoodulhaq570/datalyzer/total.svg)](https://github.com/mehmoodulhaq570/datalyzer/releases)
+[![Issues](https://img.shields.io/github/issues/mehmoodulhaq570/smart-datalyzer)](https://github.com/mehmoodulhaq570/smart-datalyzer/issues)
+[![Size](https://img.shields.io/github/repo-size/mehmoodulhaq570/smart-datalyzer.svg)](https://github.com/mehmoodulhaq570/smart-datalyzer)
+[![Downloads](https://img.shields.io/github/downloads/mehmoodulhaq570/smart-datalyzer/total.svg)](https://github.com/mehmoodulhaq570/smart-datalyzer/releases)
 
 # Smart Datalyzer
 
@@ -82,7 +82,7 @@ pip install build
 python -m build
 
 # Install
-pip install dist/smart_datalyzer-0.1.0-py3-none-any.whl
+pip install dist/smart_datalyzer-0.1.1-py3-none-any.whl
 ```
 
 ### Development Install
@@ -266,7 +266,14 @@ For security issues, please see [SECURITY.md](SECURITY.md).
 
 ## 📝 Changelog
 
-### v0.1.0 (Current)
+### v0.1.1 (Current)
+
+- Fixed swarm plot performance issues with large datasets (added sampling limit of 2000 points)
+- Fixed filename sanitization for plots with special characters
+- Improved visualization generation speed
+- Skip class imbalance check for targets with >10 unique values
+
+### v0.1.0
 
 - Initial release
 - Multiple target column support

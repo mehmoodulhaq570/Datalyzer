@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 license = { text = "MIT" }
 name = "smart-datalyzer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Data analysis and reporting toolkit"
 authors = [
     { name = "Mehmood Ul Haq", email = "mehmoodulhaq1040@gmail.com" }
